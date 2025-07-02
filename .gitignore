@@ -1,0 +1,32 @@
+# Entornos virtuales
+venv/
+env/
+
+# Node modules
+node_modules/
+
+# Archivos de entorno
+.env
+.env.*
+
+# Archivos de sistema
+.DS_Store
+
+# Archivos de compilación
+__pycache__/
+*.pyc
+
+# Expo y React Native
+.expo/
+.expo-shared/
+
+# Docker
+*.pid
+*.sock
+
+# VS Code y entorno de desarrollo
+.vscode/
+.idea/
+
+# Archivos personales
+*.log

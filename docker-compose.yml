@@ -1,0 +1,54 @@
+
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: lealtad_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: lealtad
+      MYSQL_USER: lealtad_user
+      MYSQL_PASSWORD: lealtadpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: lealtad_phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpass
+    depends_on:
+      - db
+
+  backend:
+    build: ./backend
+    container_name: lealtad_backend
+    restart: always
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_USER: lealtad_user
+      DB_PASSWORD: lealtadpass
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: lealtad
+
+volumes:
+  mysql_data:
+
+# Instrucciones adicionales:
+# 1. Crea un archivo .env en ./backend con las mismas variables de entorno para uso interno si usas python-dotenv.
+# 2. backend/Dockerfile debe contener la configuración para instalar FastAPI y ejecutar uvicorn.
+# 3. Comando para levantar todo: docker-compose up --build
