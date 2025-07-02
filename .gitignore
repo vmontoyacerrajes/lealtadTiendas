@@ -32,4 +32,4 @@ __pycache__/
 *.log
 
 *.git
-LelatadTiendas.git/
+LelatadTiendas.git/.env
