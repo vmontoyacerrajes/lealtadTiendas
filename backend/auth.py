@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from models import Usuario
-from db import get_moving_db
+from db.database import get_moving_db
 
 # Configuración JWT
 SECRET_KEY = "supersecreto123"  # ⚠️ cambiar por variable de entorno en producción

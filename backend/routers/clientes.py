@@ -1,33 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
+# routers/clientes.py
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from db import get_db
-from models import Cliente
-from schemas import ClienteCreate, ClienteOut
-from auth import get_current_user
-from models import Usuario
+from typing import List
 
-router = APIRouter()
+from db.database import get_db
+from services.clientes_service import (
+    crear_cliente as svc_crear_cliente,
+    listar_clientes as svc_listar_clientes,
+    obtener_cliente as svc_obtener_cliente,
+    eliminar_cliente as svc_eliminar_cliente,
+)
+from schemas.clientes import ClienteCreate, ClienteOut
 
-@router.post("/registrar", response_model=ClienteOut)
-def registrar_cliente(data: ClienteCreate, db: Session = Depends(get_db)):
-    cliente = db.query(Cliente).filter(Cliente.correo == data.correo).first()
-    if cliente:
-        raise HTTPException(status_code=400, detail="Correo ya registrado")
+router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
-    nuevo_cliente = Cliente(**data.dict())
-    db.add(nuevo_cliente)
-    db.commit()
-    db.refresh(nuevo_cliente)
-    return nuevo_cliente
+@router.post("/", response_model=ClienteOut)
+def crear_cliente(payload: ClienteCreate, db: Session = Depends(get_db)):
+    return svc_crear_cliente(db, payload)
 
-# routers/clientes.py (ejemplo de ruta protegida para perfil)
+@router.get("/", response_model=List[ClienteOut])
+def obtener_clientes(db: Session = Depends(get_db)):
+    return svc_listar_clientes(db)
 
-@router.get("/perfil", response_model=ClienteOut)
-def perfil_usuario_actual(usuario: Usuario = Depends(get_current_user)):
-    return {
-        "id_cliente": usuario.id_usuario,
-        "nombre": usuario.nombre,
-        "correo": usuario.email,
-        "telefono": "",  # ajustable si se usa
-        "codigo_sap": ""   # no aplica en este modelo, se puede omitir
-    }
+@router.get("/{cliente_id}", response_model=ClienteOut)
+def obtener_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    return svc_obtener_cliente(db, cliente_id)
+
+@router.delete("/{cliente_id}", response_model=ClienteOut)
+def eliminar_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    return svc_eliminar_cliente(db, cliente_id)

@@ -1,35 +1,36 @@
-# Entornos virtuales
+# --- Python / FastAPI ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
 venv/
-env/
+.pytest_cache/
+.coverage
+coverage.xml
 
-# Node modules
-node_modules/
-
-# Archivos de entorno
+# --- Env / secretos ---
 .env
 .env.*
+*/.env
+*/.env.*
 
-# Archivos de sistema
-.DS_Store
+# --- Node / Expo (app-movil) ---
+app-movil/node_modules/
+app-movil/.expo/
+app-movil/.expo-shared/
+app-movil/dist/
+app-movil/build/
+app-movil/npm-debug.log*
+app-movil/yarn-debug.log*
+app-movil/yarn-error.log*
 
-# Archivos de compilación
-__pycache__/
-*.pyc
-
-# Expo y React Native
-.expo/
-.expo-shared/
-
-# Docker
-*.pid
-*.sock
-
-# VS Code y entorno de desarrollo
-.vscode/
-.idea/
-
-# Archivos personales
+# --- Docker (si tienes volúmenes locales) ---
+docker-data/
+**/docker-data/
 *.log
 
-*.git
-LelatadTiendas.git/.env
+# --- IDE / SO ---
+.vscode/
+.idea/
+.DS_Store

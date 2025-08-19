@@ -1,17 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, Alert, StyleSheet } from "react-native";
+import { View, Text, Button, Alert, StyleSheet } from "react-native";
 import { Camera } from "expo-camera";
+import { useRouter } from "expo-router";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/context/AuthContext";
 
 export default function IndexScreen() {
-  const [token, setToken] = useState("");
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
-  const [puntos, setPuntos] = useState<any>(null);
-  const [cameraOn, setCameraOn] = useState(false);
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const router = useRouter();
+  const { token, loading } = useAuth();
 
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [cameraOn, setCameraOn] = useState(false);
+  const [puntos, setPuntos] = useState<any>(null);
+
+  // ✅ Redirigir si no hay token
+  useEffect(() => {
+    if (!loading && !token) {
+      router.replace("/login");
+    }
+  }, [loading, token]);
+
+  // ✅ Solicitar permisos de cámara
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
@@ -19,78 +28,50 @@ export default function IndexScreen() {
     })();
   }, []);
 
-  const login = async () => {
-    try {
-      const res = await axios.post("http://localhost:8000/login", {
-        username: user,
-        password: pass,
-      });
-      setToken(res.data.access_token);
-      await AsyncStorage.setItem("token", res.data.access_token);
-      Alert.alert("Login exitoso");
-    } catch {
-      Alert.alert("Error de autenticación");
-    }
-  };
-
+  // ✅ Consultar puntos del cliente autenticado
   const getPuntos = async () => {
-    const storedToken = await AsyncStorage.getItem("token");
     try {
       const perfil = await axios.get("http://localhost:8000/perfil", {
-        headers: { Authorization: `Bearer ${storedToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
+
       const res = await axios.get(
         `http://localhost:8000/saldo/${perfil.data.id_cliente}`,
         {
-          headers: { Authorization: `Bearer ${storedToken}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       setPuntos(res.data);
-    } catch {
+    } catch (err) {
       Alert.alert("No se pudo consultar puntos");
     }
   };
 
+  // ✅ Escaneo de QR
   const handleBarCodeScanned = ({ data }: { data: string }) => {
     setCameraOn(false);
     Alert.alert(`QR leído: ${data}`);
-    // Aquí puedes hacer POST a /acumular/desde-caja si deseas
+    // Aquí puedes enviar un POST a /acumular/desde-caja si es necesario
   };
+
+  if (loading) return null;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Mi App de Lealtad</Text>
 
-      {!token ? (
-        <View style={styles.form}>
-          <TextInput
-            placeholder="Usuario"
-            style={styles.input}
-            value={user}
-            onChangeText={setUser}
-          />
-          <TextInput
-            placeholder="Contraseña"
-            secureTextEntry
-            style={styles.input}
-            value={pass}
-            onChangeText={setPass}
-          />
-          <Button title="Iniciar sesión" onPress={login} />
-        </View>
-      ) : (
-        <View>
-          <Button title="Consultar puntos" onPress={getPuntos} />
-          {puntos && (
-            <View style={styles.info}>
-              <Text>Puntos disponibles: {puntos.puntos_disponibles}</Text>
-              <Text>Acumulados: {puntos.puntos_acumulados}</Text>
-              <Text>Canjeados: {puntos.puntos_canjeados}</Text>
-            </View>
-          )}
-          <Button title="Escanear QR" onPress={() => setCameraOn(true)} />
+      <Button title="Consultar puntos" onPress={getPuntos} />
+
+      {puntos && (
+        <View style={styles.info}>
+          <Text>Puntos disponibles: {puntos.puntos_disponibles}</Text>
+          <Text>Acumulados: {puntos.puntos_acumulados}</Text>
+          <Text>Canjeados: {puntos.puntos_canjeados}</Text>
         </View>
       )}
+
+      <Button title="Escanear QR" onPress={() => setCameraOn(true)} />
 
       {cameraOn && hasPermission && (
         <Camera
@@ -105,12 +86,5 @@ export default function IndexScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, justifyContent: "center" },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-  form: { gap: 10, marginBottom: 20 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 6,
-  },
   info: { marginVertical: 20 },
 });

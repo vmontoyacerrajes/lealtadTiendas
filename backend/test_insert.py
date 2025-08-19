@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from db import SessionLocal
+from db.database import SessionLocal
 from models import Cliente
 
 def insertar_cliente_dummy():
