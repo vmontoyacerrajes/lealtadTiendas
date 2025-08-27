@@ -7,7 +7,18 @@ __pycache__/
 venv/
 .pytest_cache/
 .coverage
+.coverage.*
 coverage.xml
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.ipynb_checkpoints/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
 
 # --- Env / secretos ---
 .env
@@ -15,22 +26,40 @@ coverage.xml
 */.env
 */.env.*
 
+# --- Logs ---
+*.log
+logs/
+*.pid
+
+# --- Docker (volúmenes locales / artefactos) ---
+docker-data/
+**/docker-data/
+
+# --- Alembic / Migraciones ---
+# ❗️No ignores migrations: deben versionarse
+# migrations/**/__pycache__/  (los cachés ya están cubiertos arriba)
+
 # --- Node / Expo (app-movil) ---
 app-movil/node_modules/
 app-movil/.expo/
 app-movil/.expo-shared/
+app-movil/.cache/
 app-movil/dist/
 app-movil/build/
 app-movil/npm-debug.log*
 app-movil/yarn-debug.log*
 app-movil/yarn-error.log*
+app-movil/.metro-cache/
+app-movil/.parcel-cache/
 
-# --- Docker (si tienes volúmenes locales) ---
-docker-data/
-**/docker-data/
-*.log
+# Si en algún momento “ejectas” a nativo:
+# android/ y ios/ suelen ser generados; ignóralos si no los vas a versionar
+# android/
+# ios/
 
 # --- IDE / SO ---
 .vscode/
 .idea/
 .DS_Store
+*.swp
+*.swo

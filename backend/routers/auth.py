@@ -66,12 +66,9 @@ async def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
+# routers/auth.py (fragmento)
 @router.get("/perfil")
 def perfil(token: str = Depends(oauth2_scheme)):
-    """
-    Devuelve los claims esenciales del token.
-    Útil para que la app obtenga `uid` y `origin`.
-    """
     payload = decode_access_token(token)
     if payload is None:
         raise HTTPException(
@@ -84,4 +81,6 @@ def perfil(token: str = Depends(oauth2_scheme)):
         "uid": payload.get("uid"),
         "origin": payload.get("origin"),
         "role": payload.get("role"),
+        "name": payload.get("name"),          # ✅ nombre completo desde Moving
+        "id_sucursal": payload.get("sucursal") # ✅ sucursal desde Moving
     }

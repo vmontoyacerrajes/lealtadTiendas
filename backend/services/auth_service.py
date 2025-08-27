@@ -1,34 +1,54 @@
 # services/auth_service.py
-from typing import Optional, Dict
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+import hashlib
 
-# TODO: reemplazar por consulta real a la BD de Moving
-_FAKE_CASHIERS = {
-    "cajero1": {"id": 1, "usuario": "cajero1", "password": "1234", "role": "caja"},
-    "cajero2": {"id": 2, "usuario": "cajero2", "password": "abcd", "role": "caja"},
-}
+from db.database import get_moving_db  # si lo usas en routers
+from models.moving_user import MovingUser  # tu modelo de Moving
 
-def authenticate_caja_user(db_moving: Session, username: str, password: str) -> Dict:
-    """
-    Autentica contra Moving (por ahora MOCK).
-    Cuando integres Moving, consulta la tabla/endpoint real aquí y valida la contraseña.
-    """
-    user = _FAKE_CASHIERS.get(username)
-    if not user or user["password"] != password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciales inválidas"
+def authenticate_caja_user(db_moving: Session, username: str, password: str) -> MovingUser:
+    if not username or not password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Faltan credenciales")
+
+    username_norm = username.strip().upper()
+
+    # Busca por USER normalizado y activo=1
+    user: MovingUser | None = (
+        db_moving.query(MovingUser)
+        .filter(
+            func.upper(MovingUser.user) == username_norm,
+            MovingUser.activo == 1
         )
+        .first()
+    )
+    if not user:
+        # Usuario no existe o inactivo
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
+
+    # Calcula SHA-1 del password ingresado
+    sha1_hex = hashlib.sha1(password.encode("utf-8")).hexdigest()  # minúsculas
+
+    # Compara case-insensitive por seguridad (DB puede tener mayúsculas)
+    if (user.pass_hash or "").strip().lower() != sha1_hex.lower():
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciales inválidas")
+
     return user
 
-def build_token_claims_for_caja(user: Dict) -> Dict:
-    """
-    Construye los claims del token para usuarios de caja.
-    """
+
+def build_token_claims_for_caja(user: MovingUser) -> dict:
+    # nombre completo desde nombre + paterno + materno (si existen)
+    nombre_parts = [p for p in [user.nombre, user.paterno, user.materno] if p]
+    full_name = " ".join(nombre_parts)
+
+    # mapea tipo -> role si lo necesitas
+    role = (user.tipo or "").lower()  # ej: "cajero", "admin", etc.
+
     return {
-        "sub": user["usuario"],
-        "uid": user["id"],
-        "role": user.get("role", "caja"),
+        "sub": user.user,               # usuario
+        "uid": user.id_usuario,         # id en Moving
         "origin": "caja",
+        "role": role,
+        "name": full_name,
+        "sucursal": user.id_sucursal,
     }

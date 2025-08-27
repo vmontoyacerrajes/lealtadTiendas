@@ -1,31 +1,17 @@
-import React, { createContext, useContext, useState } from 'react';
-
-type Movimiento = {
-  id: number;
-  tipo: string;
-  puntos: number;
-  descripcion: string;
-  fecha: string;
-};
+import React, { createContext, useContext, useState } from "react";
 
 type Cliente = {
   id_cliente: number;
   nombre: string;
   correo: string;
-  telefono?: string;
-  codigo_sap?: string;
-  movimientos: Movimiento[];
 };
 
-interface AuthContextType {
+type AuthContextType = {
   cliente: Cliente | null;
-  setCliente: (cliente: Cliente | null) => void;
-}
+  setCliente: React.Dispatch<React.SetStateAction<Cliente | null>>;
+};
 
-const AuthContext = createContext<AuthContextType>({
-  cliente: null,
-  setCliente: () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -37,4 +23,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = (): AuthContextType => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth debe usarse dentro de <AuthProvider>");
+  }
+  return ctx;
+};

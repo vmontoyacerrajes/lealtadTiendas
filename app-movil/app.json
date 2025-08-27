@@ -1,42 +1,39 @@
 {
   "expo": {
-    "name": "app-movil",
-    "slug": "app-movil",
-    "version": "1.0.0",
+    "name": "Tiendas Cerrajes",
+    "slug": "tiendas-cerrajes",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "appmovil",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
+    "icon": "./assets/icon.png",
+    "assetBundlePatterns": ["**/*"],
+
+    "splash": {
+      "backgroundColor": "#000000"
     },
+
+    "ios": {
+      "supportsTablet": false,
+      "splash": {
+        "image": "./assets/images/BannerLoyalty.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#000000"
+      }
+    },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true
+      "splash": {
+        "image": "./assets/images/login-bg.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#000000"
+      }
     },
+
     "web": {
       "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      "expo-router",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true
     }
   }
 }

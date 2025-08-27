@@ -1,10 +1,10 @@
-
+version: "3.9"
 
 services:
   db:
     image: mysql:8.0
     container_name: lealtad_mysql
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
       MYSQL_DATABASE: lealtad
@@ -18,20 +18,21 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: lealtad_phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
+    restart: unless-stopped
     environment:
       PMA_HOST: db
       PMA_USER: root
       PMA_PASSWORD: rootpass
     depends_on:
       - db
+    ports:
+      - "8080:80"
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
     container_name: lealtad_backend
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./backend:/app
     ports:
@@ -39,16 +40,27 @@ services:
     depends_on:
       - db
     environment:
+      # --- DB Lealtad ---
       DB_USER: lealtad_user
       DB_PASSWORD: lealtadpass
       DB_HOST: db
-      DB_PORT: 3306
+      DB_PORT: "3306"
       DB_NAME: lealtad
+
+      # --- CORS (orígenes permitidos para el front en DEV) ---
+      # Ajusta la IP 192.168.2.90 a la de tu Mac si es diferente
+      CORS_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://192.168.2.90:3000,http://localhost:3001,http://127.0.0.1:3001,http://192.168.2.90:3001"
+
+      # --- JWT ---
+      SECRET_KEY: "cambia_esta_llave_super_secreta"
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+
+      # --- Moving (si autenticas contra la BD de caja; si no, deja comentado) ---
+      # MOVING_DB_HOST: db
+      # MOVING_DB_PORT: "3306"
+      # MOVING_DB_USER: moving_user
+      # MOVING_DB_PASSWORD: movingpass
+      # MOVING_DB_NAME: moving
 
 volumes:
   mysql_data:
-
-# Instrucciones adicionales:
-# 1. Crea un archivo .env en ./backend con las mismas variables de entorno para uso interno si usas python-dotenv.
-# 2. backend/Dockerfile debe contener la configuración para instalar FastAPI y ejecutar uvicorn.
-# 3. Comando para levantar todo: docker-compose up --build
